@@ -10,11 +10,7 @@ app.post("/cartitems",async(req,res)=>{
   const{user}=req.body
   console.log(user)
     try{
-const user1=await Cartmodel.findOne({user:user}).populate({
-  path: 'cart',
-  
-  populate: { path: 'productId' }
-});
+const user1=await Cartmodel.findOne({user:user})
 console.log(user1)
 return res.send(user1)
     }catch(e){
@@ -44,11 +40,7 @@ app.patch("/productqty/:id",async(req,res)=>{
   console.log(id)
   console.log(user,qty)
   try{
-let user1=await Cartmodel.findOne({user:user}).populate({
-  path: 'cart',
-  
-  populate: { path: 'productId' }
-});
+let user1=await Cartmodel.findOne({user:user})
 console.log(user1)
 let y=user1.cart.map((ele)=>{
 if(ele._id==id){
@@ -66,6 +58,33 @@ return res.send(x)
 return res.send(e.message)
   }
 })
+app.delete("/productdel/:id",async(req,res)=>{
+  const{id}=req.params
+  const{user}=req.body
+  console.log(id,"i am del")
+  console.log(user)
+  try{
+let user1=await Cartmodel.findOne({user:user})
+console.log(user1.cart)
+let y=user1?.cart?.filter((ele)=>{
+  console.log(typeof(ele._id))
+return ele?._id.toString()!==id
+  });
+  return res.send(y)
+
+console.log(y)
+
+try{
+  let x=await Cartmodel.replaceOne({user:user},{user:user,cart:[...y]})
+
+  return res.send(x)
+}catch(e){
+return res.send(e.message)
+}
+  }catch(e){
+return res.send(e.message)
+  }
+})
 app.post("/productid/:id",async(req,res)=>{
 let {id}=req.params
 let {user}=req.body
@@ -74,10 +93,10 @@ try{
 const user1=await Cartmodel.findOne({user:user});
 console.log(user1)
 let isproductavailable=user1.cart.find((ele)=>{
-  return ele.productId==id
+  return ele._id==id
 })
 
-if(isproductavailable.productId){
+if(isproductavailable._id){
   return res.send("already in the cart")
 }else{
   return res.send("not in cart")
